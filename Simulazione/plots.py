@@ -132,7 +132,6 @@ def plots_vd_fit(fields_value, v_drift_mean, v_drift_err, m_fit, m_err, m_th, v_
     fields_value  : Array dei valori caratteristici del campo [V/m o T/m]
     v_drift_mean  : Array delle velocità di drift medie ricavate per ogni configurazione [m/s]
     v_drift_err   : Array degli errori delle velocità di drift medie [m/s]
-    lin_fuc       : Funzione lineare del fit presente in analysis.py
     m_fit         : Coefficiente angolare del fit
     m_err         : Errore sul coefficiente angolare del fit
     m_th          : Valore teorico del coefficiente angolare del fit

@@ -113,6 +113,7 @@ def simulation():
     
 
     #--------------------------------------------------------------
+    # Modalità analisi dati
     # Esegue solo l'analisi dati per ricavare la dipendenza della velocità dai campi
 
     if args.data:
@@ -146,6 +147,7 @@ def simulation():
         
         #--------------------------------------------------------------
         # Esegue l'analisi dati in base al tipo di drift scelto    
+        
         if args.drE:
             
             # Estrapola i dati in base al drift scelto
@@ -164,7 +166,7 @@ def simulation():
                 v_drift_err = data[:,1]
                 v_drift_th = data[:,2]
                 Bz = data[0,4]
-                n_t = data[:,5]
+                n_t_data = data[:,5]
                 
                 # Calcolo del coefficiente m teorico
                 m_th = 1 / Bz
@@ -180,7 +182,7 @@ def simulation():
                     print(f"Misurazione {i+1}:") 
                     print(f"Modulo del campo perpendicolare a Bz = {fields_value[i]:.2e} [V/m]")       
                     print(f"Velocità di drift media =              {v_drift_mean[i]:.2f} ± {v_drift_err[i]:.2f} [m/s]")
-                    print(f"Turbolenza =                           {n_t[i]:.2f}\n")
+                    print(f"Turbolenza =                           {n_t_data[i]:.2f}\n")
                 print(f"-------------------------------------------------------------")
                 print(f"Risultati del fit lineare delle velocità di drift:\n")
                 print(f"Coefficiente angolare del fit:    {m_fit:.2f} ± {m_err:.2f} [m²/(V·s)]")
@@ -205,7 +207,7 @@ def simulation():
                 v_drift_err = data[:,1]
                 v_drift_th = data[:,2]
                 Bz = data[0,4]
-                n_t = data[:,5]
+                n_t_data = data[:,5]
                 
                 # Calcolo del coefficiente m teorico
                 m_th = ( np.mean(v_drift_th) / Bz**2)
@@ -221,7 +223,7 @@ def simulation():
                     print(f"Misurazione {i+1}:") 
                     print(f"Modulo del campo perpendicolare a Bz = {fields_value[i]:.2e} [T/m]")       
                     print(f"Velocità di drift media =              {v_drift_mean[i]:.2f} ± {v_drift_err[i]:.2f} [m/s]")
-                    print(f"Turbolenza =                           {n_t[i]:.2f}\n")
+                    print(f"Turbolenza =                           {n_t_data[i]:.2f}\n")
                 print(f"-------------------------------------------------------------")
                 print(f"Risultati del fit lineare delle velocità di drift:\n")
                 print(f"Coefficiente angolare del fit:    {m_fit:.2e} ± {m_err:.2e} [m³/(T²·s)]")
@@ -233,17 +235,22 @@ def simulation():
         plt.show()
     #--------------------------------------------------------------
 
+        # Analisi completata
+        # Fine modalità analisi dati, chiude il programma
         return
 
 
     #--------------------------------------------------------------
+    # Modalità simulazione default o traiettoria
     # Controllo della scelta del tipo di drift e n_t per la simulazione
     
     if n_t > 1.0 or n_t < 0.0:
+        
         print(f"\nErrore: scegliere un coeffieciente per la turbolenza compreso tra [1;0]\nUsare --help per informazioni\n")
         return
     
     if args.drE and args.drG:
+        
         print(f"\nErrore: scegliere solo uno dei due modi per il moto di deriva della particella\nUsare --help per informazioni\n")
         return
     
@@ -260,6 +267,7 @@ def simulation():
         print(f"\nSimulazione del moto di deriva dato dal ∇ B con turbolenza {n_t}")
     
     if args.drE==False and args.drG==False:
+        
         print(f"\nErrore: scegliere uno dei due modi per il moto di deriva della particella\nUsare --help per informazioni\n")
         return
     #--------------------------------------------------------------
@@ -318,6 +326,7 @@ def simulation():
         E = np.array([Ex, Ey, Ez])
         B = np.array([0.0, 0.0, Bz])
         fields_val = np.linalg.norm(E[:2])
+        B_grad = np.array([0.0, 0.0, 0.0])
 
     # Parametri della simulazione per il drift gradB
     elif args.drG:
@@ -360,6 +369,7 @@ def simulation():
         B = np.array([0.0, 0.0, Bz])
         B_grad = np.array([dBdx, dBdy, 0.0])
         fields_val = np.linalg.norm(B_grad[:2])
+        E = np.array([0.0, 0.0, 0.0])
     #--------------------------------------------------------------
 
 
@@ -418,36 +428,22 @@ def simulation():
             v_perp = np.linalg.norm(v0[:2])     # Componente perpendicolare della velocità iniziale [m/s]
             r_L = v_perp / om_c                 # Raggio di Larmor [m]
 
-            #--------------------------------------------------------------
-            # Esegue la simulazione per drift ExB
-
+            # Calcolo della velocità di drift teorica per ExB
             if args.drE:
-                
-                # Calcolo della traiettoria e della velocità della particella
-                r, v = dm.drift_EXB(N, dt, B, E, qm_tra, v0, n_t)
-    
-                # Calcolo della traiettoria del centro di guida
-                r_gc = dm.guide_center(r, n_orb, steps_orb)
 
-                # Calcolo della velocità di drift teorica per ExB
-                v_d_th_vec = np.cross(E, B) / B_mod**2      # Velocità di drift teorica [m/s]
-            #--------------------------------------------------------------
+                v_d_th_vec = np.cross(E, B) / B_mod**2
 
-
-            #--------------------------------------------------------------
-            # Esegue la simulazione per drift gradiente di B
-
+            # Calcolo della velocità di drift teorica per gradB
             if args.drG:
-                
-                # Calcolo della traiettoria e della velocità della particella
-                r,v = dm.drift_gradientB(N, dt, B, B_grad, qm_tra, v0, n_t)
 
-                # Calcolo della traiettoria del centro di guida
-                r_gc = dm.guide_center(r, n_orb, steps_orb)
-
-                # Calcolo della velocità di drift teorica per gradB
                 v_d_th_vec = ( v_perp**2 / (2 * qm_tra * B_mod**3)) * np.cross(B, B_grad)     
             #--------------------------------------------------------------
+            
+            # Calcolo della traiettoria e della velocità della particella
+            r, v = dm.drift(N, dt, B, E, B_grad, qm_tra, v0, n_t)
+
+            # Calcolo della traiettoria del centro di guida
+            r_gc = dm.guide_center(r, n_orb, steps_orb)
             
             # Calcolo della velocità di drift vettoriale della particella
             v_d_vec = dm.v_drift(r_gc, n_orb, T_orb, B_hat)
@@ -467,6 +463,8 @@ def simulation():
        
        print(f"\nErrore durante la simulazione: Inserire un numero maggiore di passi o valore per campo magnetico coerente\n")
        return   
+    
+    # Fine della simulazione
     #--------------------------------------------------------------
     
 
@@ -515,6 +513,8 @@ def simulation():
         if args.save:
 
             print(f"Errore: non è possibile salvare i file in modalità traiettoria\n")
+        
+        # Fine modalità traiettoria, chiude il programma
         return 
     #--------------------------------------------------------------
     
@@ -544,6 +544,8 @@ def simulation():
     
     # Mantiene aperto il grafico prima della chiusura del programma
     plt.show()
+    
+    # Fine modalità simulazione default
     #--------------------------------------------------------------
 
 

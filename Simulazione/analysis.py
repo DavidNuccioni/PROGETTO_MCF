@@ -19,7 +19,9 @@ def vd_fit(v_drift, v_drift_th):
 
     Ritorna:
     --------
-    Nessuno
+    vd_mean    : Valore medio del modulo della velocità di drift [m/s]
+    vd_err     : Errore associato al valore medio del modulo della velocità di drift [m/s]
+    vd_th_mean : Valore teorico medio del modulo della velocità di drift [m/s]
     """
 
     mu = np.zeros(2)      # Media delle componenti della velocità di drift

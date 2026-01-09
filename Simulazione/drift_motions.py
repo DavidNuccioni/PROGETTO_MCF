@@ -1,94 +1,28 @@
 import numpy as np
 
 
-def drift_EXB(N, dt, B, E, qm, v0, n_t):
-    
-    """
-    Funzione che calola la traiettoria e la velocità di una particella con il drift ExB
-    Implementa il metodo di Boris per l'integrazione 
-    
-    Parametri:
-    ----------
-    N   : numero di passi della simulazione
-    dt  : Intervallo di tempo tra i passi [s]
-    B   : Array del campo magnetico [T]
-    E   : Array del campo elettrico [V/m]
-    qm  : Rapporto carica massa [C/Kg]
-    v0  : velocità iniziale della particella [m/s]
-    n_t : Coefficiente di scattering
-
-    Ritorna:
-    --------
-    r   : array delle posizioni della particella ad ogni passo [m]
-    v   : array delle velocità della particella ad ogni passo [m/s]
-    """
-
-    # Creazione array dei vettori di rotazione s e t
-    t = np.array([0.0, 0.0, qm * B[2] * dt / 2.0]) 
-    t2  = np.dot(t,t)   
-    s = 2.0 * t / (1.0 + t2) 
-
-    # Inizializzazione array posizione e velocità   
-    r = np.zeros((N, 3))
-    v = np.zeros((N, 3))
-    v[0, :] = v0
-
-    #--------------------------------------------------------------
-    # Moto della particella
-    
-    for n in range(N-1):
-
-        # Randomizzazione direzione particella
-        scatter = np.random.uniform(0.001,1.000)
-
-        # v_minus
-        v_minus = v[n] + qm * E * dt / 2
-
-        # v_prime = v_minus + v_minus × t
-        v_prime = v_minus + np.cross(v_minus, t)
-
-        # v_plus = v_minus + v_prime × s
-        v_plus  = v_minus + np.cross(v_prime, s)
-
-        # Variabile check per turbolenza
-        v_new = v_plus + qm * E * dt / 2 
-
-        # Turbolenza
-        if scatter <= n_t: 
-            v_mod = np.linalg.norm(v_new)
-            v[n+1] = v_mod * turbulence_effects()
-        
-        else:
-            v[n+1] = v_new
-
-        # posizione
-        r[n+1] = r[n] + v[n+1] * dt 
-    #--------------------------------------------------------------
-    
-    return r, v
-
-
-def drift_gradientB(N, dt, B, B_grad, qm, v0, n_t):
+def drift(N, dt, B, E, B_grad, qm, v0, n_t):
    
     """
-    Funzione che calola la traiettoria e la velocità di una particella con il drift gradiente di B
+    Funzione che calola la traiettoria e la velocità di una particella con il drift scelto
     Implementa il metodo di Boris per l'integrazione 
     Si calcola il campo magnetico locale in base alla posizione della particella
    
     Parametri:
     ----------
-    N   : numero di passi della simulazione
-    dt  : intervallo di tempo tra i passi [s]
-    B   : campo magnetico di riferimento [T]
-    B_grad : gradiente del campo magnetico [T/m]
+    N   : Numero di passi della simulazione
+    dt  : Intervallo di tempo tra i passi [s]
+    B   : Campo magnetico di riferimento [T]
+    E   : Campo elettrico di riferimento [V/m]
+    B_grad : Gradiente del campo magnetico [T/m]
     qm  : Rapporto carica massa [C/Kg]
-    v0  : velocità iniziale della particella [m/s]
+    v0  : Velocità iniziale della particella [m/s]
     n_t : Coefficiente di scattering
 
     Ritorna:
     --------
-    r   : array delle posizioni della particella ad ogni passo [m]
-    v   : array delle velocità della particella ad ogni passo [m/s]
+    r   : Array delle posizioni della particella ad ogni passo [m]
+    v   : Array delle velocità della particella ad ogni passo [m/s]
     """
 
     # Inizializzazione arrray posizione e velocità
@@ -113,7 +47,7 @@ def drift_gradientB(N, dt, B, B_grad, qm, v0, n_t):
         s = 2 * t / (1 + t2)
 
         # v_minus
-        v_minus = v[n]
+        v_minus = v[n] + qm * E * dt / 2
 
         # v_prime = v_minus + v_minus × t
         v_prime = v_minus + np.cross(v_minus, t)
@@ -122,14 +56,14 @@ def drift_gradientB(N, dt, B, B_grad, qm, v0, n_t):
         v_plus = v_minus + np.cross(v_prime, s)
 
         # Variabile check per turbolenza
-        v_new = v_plus
+        v_new = v_plus + qm * E * dt / 2
 
         # Turbolenza
         if scatter < n_t:
             v_mod = np.linalg.norm(v_new)
             v[n+1] = v_mod * turbulence_effects()
         else:
-            v[n+1] = v_new
+            v[n+1] = v_new 
 
         # Aggiornamento posizione
         r[n+1] = r[n] + v[n+1] * dt
@@ -180,7 +114,7 @@ def v_drift(r_gc, n_orb, T_orb, B_hat):
     r_gc   : Array delle posizioni del centro di guida [m]
     n_orb  : Numero di orbite del moto
     T_orb  : Periodo per compiere un orbita [s]
-    B_hat      : Versore campo magnetico 
+    B_hat  : Versore campo magnetico 
 
     Ritorna:
     --------
