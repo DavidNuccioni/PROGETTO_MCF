@@ -142,13 +142,13 @@ Il programma ha tre diverse modalità di esecuzione, ognuna in base al tipo di d
 
 Una volta avviato il programma in modalità default o traiettoria e scelto il tipo di drift che si vuole simulare, l'utente dovrà configurare i valori dei campi o del gradiente. Per come il programma è stato scritto, non tutti i valori per $B_z$ e dei campi genera un risultato veritiero. Alcuni valori troppo bassi o troppo alti possono generare errori o restituire risultati poco corretti. Le condizioni che permettono di ottenere dei risultati validi sono trattate in dettaglio nel capitolo 2 del file Moti_di_deriva.pdf. Di seguito vengono elencati solo i range consentiti che permettono di ricavare dei risultati coerenti per la simulazione scelta:
 
- * **$B_z$** Range consentito: $1e-3 - 9e-4$ T
+ * **$B_z$** Range consentito: $1e^{-3} - 9e^{-4}$ T
  
  * **$E_x$, $E_y$** Range consigliato: sull'ordine delle decine di V/m
  
  * **$E_z$** Range consigliato: sull'ordine delle decine di V/m e si consiglia di non sceglerlo troppo altro rispetto alle altre componenti per non coprire eccessivamente il moto di deriva
  
- * **$\nabla B$** Range consentito: $1e-7 - 9e-7$ T/m
+ * **$\nabla B$** Range consentito: $1e^{-7} - 9e^{-7}$ T/m
 
 Quando viene eseguito il programma, vengono stampati dei valori consigliati per ottenere dei risultati chiari. Si può comunque utilizzare la modalità traiettoria per visualizzare bene la configurazione scelta e verificare che restituisca risultati corretti.
 
@@ -204,10 +204,3 @@ Alcune combinazioni di argomenti potrebbero portare a un errato utilizzo del pro
  * Il file drift_data.csv contiene già $5$ misurazioni per ogni tipo di drift con diverse configurazioni di campi. Si può utilizzare da subito l'argomento --data. Se si vogliono prendere altre misurazioni si consiglia di utilizzare $B_z=8e-4$ e $step = 3000$, altrimenti `--data` non funzionerà.
  
  * Per eseguire il programma si deve utilizzare solo il file main.py, gli altri script servono e vengono utilizzati da quest'ultimo e non sono da eseguire. 
-
-
-
-
-
-
-	
